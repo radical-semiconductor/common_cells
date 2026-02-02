@@ -1,0 +1,31 @@
+load("@rules_verilator//verilog:defs.bzl", "verilog_library")
+
+exports_files(["registers.svh"])
+
+# Verilator requires pkgs to be imported first
+# So we enforce the order by chaining deps
+verilog_library(
+    name = "common_cells_pkg",
+    srcs = glob(["src/**/*_pkg.sv"]),
+)
+
+verilog_library(
+    name = "common_cells",
+    srcs = glob(
+                ["src/**/*.sv"],
+                exclude = ["src/**/*_pkg.sv"]
+            ),
+    hdrs = glob(["include/**/*.svh"]) + ["registers.svh"],
+    deps = [
+        ":common_cells_pkg",
+    ],
+    visibility = ["//visibility:public"]
+)
+
+# Allow for re-export of headers
+# Neccessary to force verilator to work nice
+filegroup(
+    name = "common_cells_hdrs",
+    srcs = glob(["include/**/*.svh"]) + ["registers.svh"],
+    visibility = ["//visibility:public"],
+)
